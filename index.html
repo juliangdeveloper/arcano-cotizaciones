@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Arcano Eventos Empresariales — Cotización</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --green: #2d5a3d;
+    --green-soft: #3d6b4f;
+    --olive: #8a7a3a;
+    --olive-dark: #6e6230;
+    --cream: #f7f4ec;
+    --cream-dark: #ebe6d8;
+    --charcoal: #2c2a26;
+    --muted: #6b675e;
+    --border: #d4cfc0;
+    --white: #ffffff;
+    --danger: #8b3a3a;
+    --accent-gold: #9a8b4a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  .app-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .app-header img { height: 52px; width: auto; }
+  .app-header h1 {
+    font-family: "Libre Baskerville", Georgia, serif;
+    font-size: 1.15rem;
+    margin: 0;
+    color: var(--green);
+    font-weight: 700;
+  }
+  .app-header .sub { color: var(--muted); font-size: 0.85rem; margin: 0; }
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 1.5rem;
+    background: var(--cream-dark);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 0.75rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--green); }
+  .tab-btn.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+    background: var(--cream);
+  }
+  .panel { display: none; padding: 1.25rem 1.5rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+  .panel.active { display: block; }
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 2px rgba(44,42,38,0.04);
+  }
+  .card h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    color: var(--green);
+    font-family: "Libre Baskerville", Georgia, serif;
+  }
+  .card p.hint { margin: 0 0 1rem; color: var(--muted); font-size: 0.9rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem 1rem; }
+  @media (max-width: 720px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font: inherit;
+    background: var(--white);
+    color: var(--charcoal);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid rgba(45,90,61,0.25);
+    border-color: var(--green-soft);
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 6px;
+    padding: 0.55rem 1rem;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-soft); }
+  .btn-secondary { background: var(--cream-dark); color: var(--charcoal); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid #e0c4c4; padding: 0.3rem 0.55rem; font-size: 0.85rem; }
+  .btn-danger:hover { background: #f8ecec; }
+  .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.85rem; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; }
+  .toolbar .spacer { flex: 1; }
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  table.data th, table.data td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.data th {
+    background: var(--cream-dark);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  table.data input, table.data select { padding: 0.3rem 0.4rem; font-size: 0.88rem; }
+  table.data .col-price { width: 110px; }
+  table.data .col-actions { width: 70px; text-align: center; }
+  .money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .totals-box {
+    margin-left: auto;
+    max-width: 320px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+  }
+  .totals-box .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    font-size: 0.95rem;
+  }
+  .totals-box .row.grand {
+    border-top: 2px solid var(--green);
+    margin-top: 0.35rem;
+    padding-top: 0.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--green);
+  }
+  .line-items .svc-row { background: #fafaf7; }
+  .section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--olive-dark);
+    margin: 1rem 0 0.5rem;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  .toast {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    background: var(--green);
+    color: white;
+    padding: 0.65rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ========== PDF / print template ========== */
+  #pdf-root {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 215.9mm;
+    background: white;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    line-height: 1.35;
+  }
+  #pdf-root.exporting {
+    position: relative;
+    left: 0;
+  }
+  .pdf-page {
+    width: 215.9mm;
+    min-height: 279.4mm;
+    padding: 12mm 14mm 14mm;
+    box-sizing: border-box;
+    background: white;
+    page-break-after: always;
+    position: relative;
+  }
+  .pdf-page:last-child { page-break-after: auto; }
+  .pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .pdf-header-left { flex: 1; }
+  .pdf-header-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .pdf-cot-no { font-size: 11pt; font-weight: 700; margin-bottom: 2px; }
+  .pdf-logo { height: 58px; width: auto; }
+  .pdf-ciudad { font-size: 11pt; margin-bottom: 2px; }
+  .pdf-saludo { margin: 2px 0; }
+  .pdf-cliente-name { font-weight: 700; }
+  .pdf-email { color: #0563c1; text-decoration: underline; }
+  .pdf-intro {
+    text-align: center;
+    margin: 10px 0 12px;
+    font-size: 9.5pt;
+    padding: 0 4px;
+  }
+  .pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin-bottom: 0;
+  }
+  .pdf-table th {
+    background: #9a8b4a;
+    color: white;
+    font-weight: 700;
+    padding: 5px 4px;
+    border: 1px solid #7a6e38;
+    text-align: center;
+    font-size: 8pt;
+  }
+  .pdf-table td {
+    border: 1px solid #bbb;
+    padding: 4px 4px;
+    vertical-align: top;
+  }
+  .pdf-table .c-fecha { width: 9%; text-align: center; }
+  .pdf-table .c-serv { width: 16%; }
+  .pdf-table .c-incl { width: 38%; font-size: 8pt; }
+  .pdf-table .c-vp { width: 12%; text-align: right; }
+  .pdf-table .c-cant { width: 10%; text-align: center; }
+  .pdf-table .c-tot { width: 15%; text-align: right; }
+  .pdf-cortesias td {
+    font-size: 8pt;
+    padding: 6px 4px;
+  }
+  .pdf-subtotal-row td {
+    border: none;
+    padding: 4px 0 2px;
+  }
+  .pdf-sub-badge {
+    display: inline-block;
+    background: #9a8b4a;
+    color: white;
+    font-weight: 700;
+    padding: 4px 10px;
+    float: right;
+    font-size: 9pt;
+  }
+  .pdf-av-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 10pt;
+    margin: 14px 0 8px;
+    letter-spacing: 0.02em;
+  }
+  .pdf-av-table {
+    width: 78%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+  .pdf-av-table th {
+    background: #9a8b4a;
+    color: white;
+    padding: 4px 6px;
+    border: 1px solid #7a6e38;
+    font-size: 8pt;
+  }
+  .pdf-av-table td {
+    border: 1px solid #bbb;
+    padding: 4px 6px;
+  }
+  .pdf-av-table .num { text-align: right; }
+  .pdf-av-table .ctr { text-align: center; }
+  .pdf-av-foot {
+    width: 78%;
+    margin: 6px auto 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9pt;
+  }
+  .pdf-grand {
+    width: 42%;
+    margin: 14px 0 14px auto;
+  }
+  .pdf-grand-row {
+    background: #9a8b4a;
+    color: white;
+    font-weight: 700;
+    padding: 5px 12px;
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+  }
+  .pdf-venue {
+    border: 1px solid #333;
+    padding: 8px 10px;
+    font-size: 8.5pt;
+    margin: 10px 0 16px;
+    text-align: justify;
+  }
+  .pdf-pol-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 11pt;
+    text-decoration: underline;
+    margin: 8px 0 10px;
+  }
+  .pdf-policy {
+    border: 1px solid #333;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 9pt;
+    text-align: justify;
+  }
+  .pdf-policy.nota {
+    color: #c45a12;
+    font-weight: 700;
+    font-size: 8.5pt;
+  }
+  .pdf-policy u { text-decoration: underline; }
+  .pdf-policy strong { font-weight: 700; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #pdf-root, #pdf-root * { visibility: visible; }
+    #pdf-root {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .pdf-page {
+      page-break-after: always;
+      margin: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <img src="logo.png" alt="Arcano · Montpellier" />
+  <div>
+    <h1>Arcano Eventos Empresariales</h1>
+    <p class="sub">Cotización · Casa Campestre Montpellier</p>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button type="button" class="tab-btn active" data-tab="ajustes" role="tab">Ajustes / Datos y tarifas</button>
+  <button type="button" class="tab-btn" data-tab="cotizacion" role="tab">Cotización</button>
+</nav>
+
+<!-- ========== TAB AJUSTES ========== -->
+<section id="tab-ajustes" class="panel active" role="tabpanel">
+  <div class="card">
+    <h2>Servicios y tarifas vigentes</h2>
+    <p class="hint">Edite el catálogo (columna Precio vigente). Los cambios se guardan en este navegador y alimentan el formulario de cotización.</p>
+    <div class="toolbar">
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-add-servicio">+ Agregar servicio</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-reset-servicios">Restablecer servicios</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-save-tarifas">Guardar tarifas</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data" id="tabla-servicios">
+        <thead>
+          <tr>
+            <th style="width:22%">Servicio</th>
+            <th>Descripción</th>
+            <th class="col-price">Precio vigente</th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Equipos audiovisuales</h2>
+    <p class="hint">Precios de lista (tiempo completo / día).</p>
+    <div class="toolbar">
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-add-equipo">+ Agregar equipo</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-reset-equipos">Restablecer equipos</button>
+    </div>
+    <table class="data" id="tabla-equipos">
+      <thead>
+        <tr>
+          <th>Equipo</th>
+          <th class="col-price">Precio</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== TAB COTIZACIÓN ========== -->
+<section id="tab-cotizacion" class="panel" role="tabpanel">
+  <div class="card">
+    <h2>Datos del cliente</h2>
+    <div class="grid-4">
+      <div>
+        <label for="ciudad">Ciudad</label>
+        <input id="ciudad" type="text" value="Envigado" />
+      </div>
+      <div>
+        <label for="cot-no">Cotización No.</label>
+        <input id="cot-no" type="text" placeholder="_____" />
+      </div>
+      <div>
+        <label for="prefijo">Prefijo</label>
+        <select id="prefijo">
+          <option>Sr.</option>
+          <option selected>Sra.</option>
+          <option>Sta.</option>
+        </select>
+      </div>
+      <div>
+        <label for="fecha-servicio">Fecha servicio</label>
+        <input id="fecha-servicio" type="date" value="2026-09-16" />
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:0.75rem">
+      <div>
+        <label for="nombre">Nombre cliente</label>
+        <input id="nombre" type="text" value="Julián" />
+      </div>
+      <div>
+        <label for="documento">Documento / teléfono</label>
+        <input id="documento" type="text" value="37743738" />
+      </div>
+      <div>
+        <label for="correo">Correo</label>
+        <input id="correo" type="email" value="Correo@ejdj.fkd" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Servicios</h2>
+    <div class="toolbar">
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-add-linea">+ Línea de servicio</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data line-items" id="tabla-lineas">
+        <thead>
+          <tr>
+            <th style="width:22%">Servicio</th>
+            <th>Incluye</th>
+            <th style="width:110px">V. persona</th>
+            <th style="width:90px"># Personas</th>
+            <th style="width:110px">Total</th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div style="margin-top:0.75rem">
+      <label for="cortesias">Cortesías</label>
+      <textarea id="cortesias">parqueadero (hasta 40 carros), 1 papelógrafo acrílico; 1 canastica de galletas surtidas  a primera hora del evento</textarea>
+    </div>
+    <div class="totals-box" style="margin-top:0.75rem">
+      <div class="row"><span>Subtotal servicios</span><span class="money" id="sub-servicios">$ 0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="section-title">Cotización ayudas audiovisuales opcionales</p>
+    <table class="data" id="tabla-av">
+      <thead>
+        <tr>
+          <th>Equipo</th>
+          <th style="width:130px">Valor unitario</th>
+          <th style="width:100px">Cant. días</th>
+          <th style="width:120px">Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="totals-box" style="margin-top:0.75rem">
+      <div class="row"><span>Subtotal AV</span><span class="money" id="sub-av">$ 0</span></div>
+      <div class="row"><span>Subtotal general</span><span class="money" id="sub-general">$ 0</span></div>
+      <div class="row"><span>IVA 19%</span><span class="money" id="iva">$ 0</span></div>
+      <div class="row grand"><span>TOTAL</span><span class="money" id="total">$ 0</span></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" class="btn btn-secondary" id="btn-reset-cotizacion">Restablecer cotización muestra</button>
+    <span class="spacer"></span>
+    <button type="button" class="btn btn-primary" id="btn-export-pdf">Exportar PDF</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<!-- Hidden PDF template -->
+<div id="pdf-root" aria-hidden="true"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "arcano-tarifas-v1";
+  const IVA_RATE = 0.19;
+  const ACCENT = "#9a8b4a";
+
+  const DEFAULT_SERVICIOS = [
+    { nombre: "PLAN ARCANO PLUS", descripcion: "SALÓN dotado mesas y sillas; plan  día ; ALIMENTACIÓN: 1 desayuno, 2 refrigerios am-pm y almuerzo. ", precio: 140000 },
+    { nombre: "PLAN ARCANO", descripcion: "SALÓN dotado mesas y sillas; plan  día ;ALIMENTACIÓN:  2 refrigerios am-pm y almuerzo. ", precio: 115000 },
+    { nombre: "PLAN ARCANO FULL", descripcion: "SALÓN dotado mesas y sillas; plan  día ;ALIMENTACIÓN  1desayuno, 1 almuerzo y 1 refrigerio ", precio: 125000 },
+    { nombre: "PLAN EMPRESARIAL PLUS", descripcion: "SALÓN dotado mesas y sillas; plan  día ; ALIMENTACIÓN: , 1 refrigerios am o pm y almuerzo. ", precio: 100000 },
+    { nombre: "PLAN EMPRESARIAL", descripcion: "SALÓN dotado mesas y sillas; plan  medio día; ALIMENTACIÓN: , 1 refrigerios am o pm y almuerzo. ", precio: 80000 },
+    { nombre: "PLAN ALMUERZO", descripcion: "SALÓN dotado mesas y sillas;  plan  mediodía ,ALIMENTACIÓN:  1 almuerzo", precio: 75000 },
+    { nombre: "PLAN EJECUTIVO PLUS", descripcion: "SALÓN dotado, mesas y sillas plan día ,ALIMENTACIÓN: 2 refrigerios", precio: 80000 },
+    { nombre: "PLAN EJECUTIVO", descripcion: "Salón dotado mesas y sillas;, mediodía 4 horas, Alimentación: 1 refrigerio.", precio: 60000 },
+    { nombre: "DESAYUNO", descripcion: "Desayuno adicional", precio: 20000 },
+    { nombre: "REFRIGERIO", descripcion: "Refrigerio adicional", precio: 18000 },
+    { nombre: "ALMUERZO ADICIONAL", descripcion: "Almuerzo adicional", precio: 40000 },
+    { nombre: "HORA ADICIONAL", descripcion: "Hora o fracción adicional a la reserva", precio: 170000 },
+    { nombre: "ESTACIÓN DE CAFÉ", descripcion: "Tinto, aromática, agua, crema en polvo no láctea, durante la jornada ", precio: 7500 },
+    { nombre: "CAMBIO DE ALM. POR PICNIC", descripcion: "Cambia el almuerzo del plan por picnic", precio: 0 },
+    { nombre: "COCTEL O COPA DE VINO", descripcion: "Cocteles preparados por Arcano, con previa elección en el formato de reserva. ", precio: 12000 },
+    { nombre: "COCTEL SIN LICOR", descripcion: "Coctel sin licor", precio: 8000 },
+    { nombre: "TABLA DE MADURADOS CON COCTEL", descripcion: "Tabla de quesos y madurados con copa de vino o coctel por persona.", precio: 40000 },
+    { nombre: "MONTAJE DE MOBILIARIO PICNIC EN ZONA VERDE", descripcion: "Servicio de almuerzo en la manga con mobiliario tipo picnic.\nMenú: Sanduches de roast beef o madurados, con papas chips, porción de fruta y mini Brownie.", precio: 0 },
+    { nombre: "ASADO ADICIONAL", descripcion: "Asado: : Pollo, carne de cerdo, arepitas, mazorca, papa cocida, ensalada, bebidas surtidas , incluye parrillero ", precio: 50000 },
+    { nombre: "CAPITÁN SE SERVICIO  8 HORAS", descripcion: "Personal de Arcano dedicado únicamente a su evento con prestación de servicio en plato servido y al salón. 8 horas.", precio: 0 },
+    { nombre: "CAPITÁN SE SERVICIO  4 HORAS", descripcion: "Personal de Arcano dedicado únicamente a su evento con prestación de servicio en plato servido y al salón. 4 horas.", precio: 0 },
+    { nombre: "GALLETICAS DE SAL Y DULCE", descripcion: "Variedad de galletas y deditos de queso acompañando la estación de tintos y aromáticas. (surtido dos veces al día)", precio: 10000 },
+    { nombre: "DISPENSADOR DE AGUAS SABORIZADAS", descripcion: "Botellón para 40 vasos, puede ser cítricos amarillos, limonada con yerbabuena o de frutos rojos.", precio: 0 },
+    { nombre: "BARRA DE SNAKS", descripcion: "Barra de galletas, chocolates, maní y surtidos. ", precio: 12000 },
+    { nombre: "SALÓN SOLO", descripcion: "Salón dotado mesas y sillas, sin alimentación", precio: 40000 }
+  ];
+
+  const DEFAULT_EQUIPOS = [
+    { nombre: "VIDEOBEAM", precio: 200000 },
+    { nombre: "SONIDO", precio: 150000 },
+    { nombre: "SONIDO CON MICRÓFONO", precio: 250000 },
+    { nombre: "VIDEBEAM + SONIDO", precio: 300000 },
+    { nombre: "VIDEBEAM+SONIDO + MICROFONO", precio: 380000 },
+    { nombre: "PAPELÓGRAFO ADICIONAL.", precio: 25000 }
+  ];
+
+  const INTRO = "A continuación presentamos la cotización para su evento según sus necesidades.  Les agradecemos por contar con Arcano, como operador y Casa Campestre Montpellier, con sus instalaciones, como sus aliados para la realización del evento solicitado.";
+
+  const VENUE = "Casa Campestre Montpellier – Arcano cuenta con hermosas zonas verdes y vistas espectaculares, donde se atiende solo un cliente empresarial por día, lo que permite prestar un servicio exclusivo y de calidad.  Las instalaciones constan de un solo salón aireado y un espacio adicional para comedor. Además, dispone de parqueadero gratuito con capacidad para 40 carros.";
+
+  const POLICIES = [
+    { tipo: "nota", html: "NOTA: CASA CAMPESTRE MONTPELLIER – ARCANO NO CUENTA CON SERVICIO DE PAPELERÍA, IMPRESIONES, FOTOCOPIAS, CINTAS, PAPEL, NI OTROS IMPLEMENTOS DE PAPELERÍA, POR LO QUE EL CLIENTE DEBE TRAER LOS SUMINISTROS NECESARIOS PARA LA REALIZACIÓN DE LAS ACTIVIDADES PROGRAMADAS." },
+    { tipo: "item", html: "1.\u00a0Si es cliente nuevo deberá presentar Cámara de Comercio no mayor a 30  y copia del RUT. Además, debe cancelar el <u>70% del valor cotizado por anticipado en su primera reserva. Una vez recibida la factura, esta debe ser cancelada en un plazo máximo de 8 días.</u>" },
+    { tipo: "item", html: "2. Si el cliente ya está inscrito en Arcano, se requiere un anticipo del 50%. Una vez enviada la factura, esta debe ser cancelada en un plazo máximo de 15 días. Para clientes con más de tres eventos en el año no se requiere pago de anticipo, y se podrán acordar opciones de pago." },
+    { tipo: "item", html: "3.\u00a0 Nuestro horario de atención es de 7.00 am a 6.00 pm. El salón se entrega media hora antes del evento. En caso de requerir horario extendido se cobrará un recargo  de $ 180.000  adicional por hora o fracción.  <u>Si después de terminado el evento van a realizar un encuentro o reunión extraordinaria o algunos participantes necesitan quedarse un tiempo más, debe consultarse con antelación la disponibilidad,  y se cobrara tarifa adicional.</u>" },
+    { tipo: "item", html: "4. La reserva se confirma con el formulario de reservas diligenciado y con el anticipo, según lo indicado en el numeral 2. Se debe reconfirmar el <strong>número de personas 5 días antes del evento</strong>; de lo contrario, se atenderá el servicio y  se facturará, según el número de personas informadas en el formulario. Si llegan más personas o se requieren otros servicios no acordados previamente, se cobrarán los  respectivos valores adicionales." },
+    { tipo: "item", html: "5. Los eventos se pueden cancelar 15 días antes de la fecha pactada y por escrito al e-mail arcano.eventos2022@gmail.com. En caso de no hacerlo con dicha antelación se generará un cobro del 30% del valor de la cotización. Si el evento es cancelado dentro de los 3 días previos, se generará un cobro del  50% del valor de la reserva, y para cancelaciones el mismo día del evento, se generará un cobro del 100%. Estos cobros son antes de IVA." },
+    { tipo: "item", html: "6. La estación de café estará en servicio media hora antes del inicio del evento y se retira 20 minutos antes del cierre del mismo, según el horario establecido en el formulario." },
+    { tipo: "item", html: "7. La selección del menú por parte del cliente debe ser enviada <strong>5 días antes del evento</strong>. De lo contrario, esta selección queda a cargo de Arcano." },
+    { tipo: "item", html: "8. La alimentación se puede servir en el comedor o en el auditorio. Para un grupo de 50 personas o más, el servicio será prestado en el auditorio. Si el número de personas es menor de 50 pero el cliente desea que el servicio de alimentación sea prestado en el auditorio, se debe informar con anticipación, ya que tendrá un cobro adicional." },
+    { tipo: "item", html: "9. La entrada de alimentos y bebidas a la sede debe ser acordada previamente ." },
+    { tipo: "item", html: "10. <strong>Las mesas y sillas del auditorio no pueden ser desplazadas a las zonas verdes, debido a que no son las adecuadas para este espacio y se pueden generar daños en el césped y en el mobiliario, con el  consiguiente cobro por daños.</strong> En caso de que el cliente tenga programado realizar actividades en esta zona y se requiera el alquiler de sillas y/o mesas apropiadas, debe informar la cantidad que necesitan, además de otros requerimientos de apoyo logístico." },
+    { tipo: "item", html: "11. El salón se prepara con la logística informada en el formulario de reservas, antes del evento. En caso de requerir adecuaciones de los espacios para las actividades que tengan programadas, se debe informar con antelación, por ejemplo: cambio de distribución del mobiliario, equipos audiovisuales, cables de extensión, etc., para incluirlos en la cotización." },
+    { tipo: "item", html: "12. Arcano - Casa Campestre Montpellier no se hacen responsables de daños o pérdidas de objetos personales dentro de sus instalaciones ni en los parqueaderos." }
+  ];
+
+  let servicios = [];
+  let equipos = [];
+  let tasaAseo = { descripcion: "Tasa de aseo, logística, mesero", precio: 480000, cantidad: 1 };
+
+  /* ---------- utils ---------- */
+  function money(n) {
+    const v = Math.round(Number(n) || 0);
+    const neg = v < 0;
+    const s = Math.abs(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return (neg ? "-$ " : "$ ") + s;
+  }
+
+  function parseNum(el) {
+    const raw = String(el.value || "").replace(/[^\d-]/g, "");
+    return parseInt(raw, 10) || 0;
+  }
+
+  function formatDateDDMMYY(iso) {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    if (!y) return "";
+    return d + "/" + m + "/" + String(y).slice(-2);
+  }
+
+  function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  function deepClone(o) {
+    return JSON.parse(JSON.stringify(o));
+  }
+
+  function loadTarifas() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (Array.isArray(data.servicios) && data.servicios.length) servicios = data.servicios;
+        else servicios = deepClone(DEFAULT_SERVICIOS);
+        if (Array.isArray(data.equipos) && data.equipos.length) equipos = data.equipos;
+        else equipos = deepClone(DEFAULT_EQUIPOS);
+        return;
+      }
+    } catch (e) { /* ignore */ }
+    servicios = deepClone(DEFAULT_SERVICIOS);
+    equipos = deepClone(DEFAULT_EQUIPOS);
+  }
+
+  function saveTarifas() {
+    readServiciosFromTable();
+    readEquiposFromTable();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ servicios, equipos }));
+    refreshLineDropdowns();
+    refreshAVTable();
+    recalc();
+    toast("Tarifas guardadas");
+  }
+
+  /* ---------- tabs ---------- */
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      if (btn.dataset.tab === "cotizacion") {
+        refreshLineDropdowns();
+        refreshAVTable();
+        recalc();
+      }
+    });
+  });
+
+  /* ---------- ajustes tables ---------- */
+  function renderServiciosTable() {
+    const tb = document.querySelector("#tabla-servicios tbody");
+    tb.innerHTML = "";
+    servicios.forEach((s, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><input type="text" data-f="nombre" value="' + escAttr(s.nombre) + '" /></td>' +
+        '<td><input type="text" data-f="descripcion" value="' + escAttr(s.descripcion) + '" /></td>' +
+        '<td><input type="number" data-f="precio" min="0" step="100" value="' + (s.precio || 0) + '" /></td>' +
+        '<td class="col-actions"><button type="button" class="btn btn-danger" data-del="' + i + '">Eliminar</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll("[data-del]").forEach((b) => {
+      b.addEventListener("click", () => {
+        readServiciosFromTable();
+        servicios.splice(Number(b.dataset.del), 1);
+        renderServiciosTable();
+      });
+    });
+  }
+
+  function renderEquiposTable() {
+    const tb = document.querySelector("#tabla-equipos tbody");
+    tb.innerHTML = "";
+    equipos.forEach((e, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><input type="text" data-f="nombre" value="' + escAttr(e.nombre) + '" /></td>' +
+        '<td><input type="number" data-f="precio" min="0" step="1000" value="' + (e.precio || 0) + '" /></td>' +
+        '<td class="col-actions"><button type="button" class="btn btn-danger" data-del="' + i + '">Eliminar</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll("[data-del]").forEach((b) => {
+      b.addEventListener("click", () => {
+        readEquiposFromTable();
+        equipos.splice(Number(b.dataset.del), 1);
+        renderEquiposTable();
+      });
+    });
+  }
+
+  function escAttr(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;");
+  }
+
+  function escHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function readServiciosFromTable() {
+    const rows = document.querySelectorAll("#tabla-servicios tbody tr");
+    servicios = Array.from(rows).map((tr) => ({
+      nombre: tr.querySelector('[data-f="nombre"]').value.trim(),
+      descripcion: tr.querySelector('[data-f="descripcion"]').value,
+      precio: Number(tr.querySelector('[data-f="precio"]').value) || 0
+    })).filter((s) => s.nombre);
+  }
+
+  function readEquiposFromTable() {
+    const rows = document.querySelectorAll("#tabla-equipos tbody tr");
+    equipos = Array.from(rows).map((tr) => ({
+      nombre: tr.querySelector('[data-f="nombre"]').value.trim(),
+      precio: Number(tr.querySelector('[data-f="precio"]').value) || 0
+    })).filter((e) => e.nombre);
+  }
+
+  document.getElementById("btn-add-servicio").addEventListener("click", () => {
+    readServiciosFromTable();
+    servicios.push({ nombre: "NUEVO SERVICIO", descripcion: "", precio: 0 });
+    renderServiciosTable();
+  });
+  document.getElementById("btn-add-equipo").addEventListener("click", () => {
+    readEquiposFromTable();
+    equipos.push({ nombre: "NUEVO EQUIPO", precio: 0 });
+    renderEquiposTable();
+  });
+  document.getElementById("btn-reset-servicios").addEventListener("click", () => {
+    if (confirm("¿Restablecer todos los servicios a los valores originales?")) {
+      servicios = deepClone(DEFAULT_SERVICIOS);
+      renderServiciosTable();
+      saveTarifas();
+    }
+  });
+  document.getElementById("btn-reset-equipos").addEventListener("click", () => {
+    if (confirm("¿Restablecer equipos a los valores originales?")) {
+      equipos = deepClone(DEFAULT_EQUIPOS);
+      renderEquiposTable();
+      saveTarifas();
+    }
+  });
+  document.getElementById("btn-save-tarifas").addEventListener("click", saveTarifas);
+
+  /* ---------- cotización line items ---------- */
+  function findServicio(nombre) {
+    const n = (nombre || "").trim().toUpperCase();
+    return servicios.find((s) => s.nombre.trim().toUpperCase() === n) || null;
+  }
+
+  function findEquipo(nombre) {
+    const n = (nombre || "").trim().toUpperCase().replace(/\s+/g, " ");
+    return equipos.find((e) => e.nombre.trim().toUpperCase().replace(/\s+/g, " ") === n) ||
+      equipos.find((e) => e.nombre.trim().toUpperCase().replace(/\s+/g, " ").startsWith(n)) ||
+      null;
+  }
+
+  function optionsHtml(selected) {
+    let html = '<option value="">— Seleccionar —</option>';
+    servicios.forEach((s) => {
+      const sel = s.nombre.trim() === (selected || "").trim() ? " selected" : "";
+      html += '<option value="' + escAttr(s.nombre) + '"' + sel + ">" + escHtml(s.nombre) + "</option>";
+    });
+    return html;
+  }
+
+  function addLinea(data) {
+    const tb = document.querySelector("#tabla-lineas tbody");
+    const tr = document.createElement("tr");
+    tr.className = "svc-row";
+    const isFixed = !!(data && data.fixed);
+    if (isFixed) {
+      tr.dataset.fixed = "1";
+      tr.innerHTML =
+        '<td><em style="color:var(--muted)">Fijo</em></td>' +
+        '<td><input type="text" class="f-desc" value="' + escAttr(data.descripcion) + '" /></td>' +
+        '<td><input type="number" class="f-precio" min="0" step="1000" value="' + (data.precio || 0) + '" /></td>' +
+        '<td><input type="number" class="f-cant" min="0" step="1" value="' + (data.cantidad || 1) + '" /></td>' +
+        '<td class="money f-total">' + money((data.precio || 0) * (data.cantidad || 1)) + "</td>" +
+        '<td class="col-actions"></td>';
+    } else {
+      tr.innerHTML =
+        '<td><select class="f-serv">' + optionsHtml(data && data.nombre) + "</select></td>" +
+        '<td><input type="text" class="f-desc" value="' + escAttr((data && data.descripcion) || "") + '" /></td>' +
+        '<td><input type="number" class="f-precio" min="0" step="100" value="' + ((data && data.precio) || 0) + '" /></td>' +
+        '<td><input type="number" class="f-cant" min="0" step="1" value="' + ((data && data.cantidad) != null ? data.cantidad : 0) + '" /></td>' +
+        '<td class="money f-total">' + money(((data && data.precio) || 0) * ((data && data.cantidad) || 0)) + "</td>" +
+        '<td class="col-actions"><button type="button" class="btn btn-danger btn-del-linea">×</button></td>';
+    }
+    tb.appendChild(tr);
+    bindLinea(tr);
+  }
+
+  function bindLinea(tr) {
+    const sel = tr.querySelector(".f-serv");
+    if (sel) {
+      sel.addEventListener("change", () => {
+        const svc = findServicio(sel.value);
+        if (svc) {
+          tr.querySelector(".f-desc").value = svc.descripcion;
+          tr.querySelector(".f-precio").value = svc.precio;
+          if (!Number(tr.querySelector(".f-cant").value)) tr.querySelector(".f-cant").value = 1;
+        }
+        recalc();
+      });
+    }
+    tr.querySelectorAll(".f-precio, .f-cant, .f-desc").forEach((el) => {
+      el.addEventListener("input", recalc);
+    });
+    const del = tr.querySelector(".btn-del-linea");
+    if (del) del.addEventListener("click", () => { tr.remove(); recalc(); });
+  }
+
+  function refreshLineDropdowns() {
+    document.querySelectorAll("#tabla-lineas tbody tr").forEach((tr) => {
+      const sel = tr.querySelector(".f-serv");
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = optionsHtml(cur);
+      if (cur && !findServicio(cur)) {
+        /* keep orphan value */
+        const opt = document.createElement("option");
+        opt.value = cur;
+        opt.textContent = cur;
+        opt.selected = true;
+        sel.appendChild(opt);
+      } else if (cur) {
+        const svc = findServicio(cur);
+        if (svc) {
+          tr.querySelector(".f-desc").value = svc.descripcion;
+          tr.querySelector(".f-precio").value = svc.precio;
+        }
+      }
+    });
+  }
+
+  function getLineas() {
+    const lines = [];
+    document.querySelectorAll("#tabla-lineas tbody tr").forEach((tr) => {
+      const fixed = tr.dataset.fixed === "1";
+      const nombre = fixed ? "" : (tr.querySelector(".f-serv")?.value || "");
+      const descripcion = tr.querySelector(".f-desc").value;
+      const precio = Number(tr.querySelector(".f-precio").value) || 0;
+      const cantidad = Number(tr.querySelector(".f-cant").value) || 0;
+      lines.push({
+        fixed,
+        nombre: fixed ? "Tasa de aseo" : nombre,
+        descripcion,
+        precio,
+        cantidad,
+        total: precio * cantidad,
+        showInPdf: fixed || !!nombre || cantidad > 0 || precio > 0
+      });
+    });
+    return lines;
+  }
+
+  /* ---------- AV ---------- */
+  const AV_DEFAULTS = [
+    { key: "VIDEOBEAM", dias: 1 },
+    { key: "SONIDO", dias: 1 },
+    { key: "SONIDO CON MICRÓFONO", dias: 0 }
+  ];
+
+  let avState = deepClone(AV_DEFAULTS);
+
+  function refreshAVTable() {
+    /* preserve days */
+    const prev = {};
+    document.querySelectorAll("#tabla-av tbody tr").forEach((tr) => {
+      prev[tr.dataset.key] = Number(tr.querySelector(".av-dias").value) || 0;
+    });
+    if (Object.keys(prev).length) {
+      avState.forEach((a) => { if (prev[a.key] != null) a.dias = prev[a.key]; });
+    }
+
+    const tb = document.querySelector("#tabla-av tbody");
+    tb.innerHTML = "";
+    avState.forEach((a) => {
+      const eq = findEquipo(a.key) || { nombre: a.key, precio: 0 };
+      const tr = document.createElement("tr");
+      tr.dataset.key = a.key;
+      const tot = (eq.precio || 0) * (a.dias || 0);
+      tr.innerHTML =
+        "<td>" + escHtml(eq.nombre || a.key) + "</td>" +
+        '<td class="money">' + money(eq.precio) + "</td>" +
+        '<td><input type="number" class="av-dias" min="0" step="1" value="' + (a.dias || 0) + '" /></td>' +
+        '<td class="money av-tot">' + money(tot) + "</td>";
+      tb.appendChild(tr);
+      tr.querySelector(".av-dias").addEventListener("input", () => {
+        a.dias = Number(tr.querySelector(".av-dias").value) || 0;
+        recalc();
+      });
+    });
+  }
+
+  function getAV() {
+    return avState.map((a) => {
+      const eq = findEquipo(a.key) || { nombre: a.key, precio: 0 };
+      const dias = a.dias || 0;
+      return {
+        nombre: eq.nombre || a.key,
+        unitario: eq.precio || 0,
+        dias,
+        total: (eq.precio || 0) * dias
+      };
+    });
+  }
+
+  /* ---------- totals ---------- */
+  function recalc() {
+    const lines = getLineas();
+    let subServ = 0;
+    document.querySelectorAll("#tabla-lineas tbody tr").forEach((tr) => {
+      const p = Number(tr.querySelector(".f-precio").value) || 0;
+      const c = Number(tr.querySelector(".f-cant").value) || 0;
+      const tot = p * c;
+      tr.querySelector(".f-total").textContent = money(tot);
+      subServ += tot;
+    });
+    const av = getAV();
+    let subAv = 0;
+    document.querySelectorAll("#tabla-av tbody tr").forEach((tr, i) => {
+      const item = av[i];
+      tr.querySelector(".av-tot").textContent = money(item.total);
+      subAv += item.total;
+    });
+    const subGen = subServ + subAv;
+    const iva = Math.round(subGen * IVA_RATE);
+    const total = subGen + iva;
+    document.getElementById("sub-servicios").textContent = money(subServ);
+    document.getElementById("sub-av").textContent = money(subAv);
+    document.getElementById("sub-general").textContent = money(subGen);
+    document.getElementById("iva").textContent = money(iva);
+    document.getElementById("total").textContent = money(total);
+    return { lines, av, subServ, subAv, subGen, iva, total };
+  }
+
+  function resetDefaultQuote() {
+    document.getElementById("ciudad").value = "Envigado";
+    document.getElementById("cot-no").value = "";
+    document.getElementById("prefijo").value = "Sra.";
+    document.getElementById("nombre").value = "Julián";
+    document.getElementById("documento").value = "37743738";
+    document.getElementById("correo").value = "Correo@ejdj.fkd";
+    document.getElementById("fecha-servicio").value = "2026-09-16";
+    document.getElementById("cortesias").value =
+      "parqueadero (hasta 40 carros), 1 papelógrafo acrílico; 1 canastica de galletas surtidas  a primera hora del evento";
+
+    const tb = document.querySelector("#tabla-lineas tbody");
+    tb.innerHTML = "";
+    const plan = findServicio("PLAN ARCANO") || DEFAULT_SERVICIOS[1];
+    const cafe = findServicio("ESTACIÓN DE CAFÉ") || DEFAULT_SERVICIOS[12];
+    addLinea({ nombre: plan.nombre, descripcion: plan.descripcion, precio: plan.precio, cantidad: 20 });
+    addLinea({ nombre: cafe.nombre, descripcion: cafe.descripcion, precio: cafe.precio, cantidad: 20 });
+    addLinea({ nombre: "", descripcion: "", precio: 0, cantidad: 0 });
+    addLinea({ fixed: true, descripcion: tasaAseo.descripcion, precio: tasaAseo.precio, cantidad: 1 });
+
+    avState = deepClone(AV_DEFAULTS);
+    refreshAVTable();
+    recalc();
+  }
+
+  document.getElementById("btn-add-linea").addEventListener("click", () => {
+    /* insert before fixed tasa row if present */
+    const tb = document.querySelector("#tabla-lineas tbody");
+    const fixed = tb.querySelector('tr[data-fixed="1"]');
+    const tmp = document.createElement("tbody");
+    /* simpler: just append before fixed */
+    addLinea({ nombre: "", descripcion: "", precio: 0, cantidad: 0 });
+    if (fixed) {
+      const last = tb.lastElementChild;
+      tb.insertBefore(last, fixed);
+    }
+    recalc();
+  });
+
+  document.getElementById("btn-reset-cotizacion").addEventListener("click", () => {
+    if (confirm("¿Restablecer la cotización a los valores de la muestra?")) resetDefaultQuote();
+  });
+
+  /* ---------- PDF ---------- */
+  function buildPdfHtml(totals) {
+    const ciudad = document.getElementById("ciudad").value.trim() || "Envigado";
+    const cotNo = document.getElementById("cot-no").value.trim() || "_____";
+    const prefijo = document.getElementById("prefijo").value;
+    const nombre = document.getElementById("nombre").value.trim();
+    const doc = document.getElementById("documento").value.trim();
+    const correo = document.getElementById("correo").value.trim();
+    const fecha = formatDateDDMMYY(document.getElementById("fecha-servicio").value);
+    const cortesias = document.getElementById("cortesias").value.trim();
+
+    const lines = totals.lines;
+    /* Build main rows: service lines that aren't empty optional, plus empty row if needed like sample */
+    let mainRows = "";
+    let firstDateShown = false;
+    lines.forEach((ln, idx) => {
+      if (ln.fixed) {
+        mainRows +=
+          "<tr>" +
+          '<td class="c-fecha"></td>' +
+          '<td class="c-serv"></td>' +
+          '<td class="c-incl">' + escHtml(ln.descripcion) + "</td>" +
+          '<td class="c-vp">' + money(ln.precio) + "</td>" +
+          '<td class="c-cant">' + ln.cantidad + "</td>" +
+          '<td class="c-tot">' + money(ln.total) + "</td>" +
+          "</tr>";
+        return;
+      }
+      const empty = !ln.nombre && !ln.cantidad && !ln.precio;
+      if (empty && idx > 0) {
+        /* show blank optional row like sample */
+        mainRows +=
+          "<tr>" +
+          '<td class="c-fecha"></td><td class="c-serv"></td><td class="c-incl"></td>' +
+          '<td class="c-vp"></td><td class="c-cant"></td>' +
+          '<td class="c-tot">' + money(0) + "</td>" +
+          "</tr>";
+        return;
+      }
+      if (empty) return;
+      const showFecha = !firstDateShown && fecha;
+      if (showFecha) firstDateShown = true;
+      mainRows +=
+        "<tr>" +
+        '<td class="c-fecha">' + (showFecha ? escHtml(fecha) : "") + "</td>" +
+        '<td class="c-serv">' + escHtml(ln.nombre) + "</td>" +
+        '<td class="c-incl">' + escHtml(ln.descripcion) + "</td>" +
+        '<td class="c-vp">' + money(ln.precio) + "</td>" +
+        '<td class="c-cant">' + ln.cantidad + "</td>" +
+        '<td class="c-tot">' + money(ln.total) + "</td>" +
+        "</tr>";
+    });
+
+    let avRows = "";
+    totals.av.forEach((a) => {
+      avRows +=
+        "<tr>" +
+        "<td>" + escHtml(a.nombre) + "</td>" +
+        '<td class="num">' + money(a.unitario) + "</td>" +
+        '<td class="ctr">' + a.dias + "</td>" +
+        '<td class="num">' + money(a.total) + "</td>" +
+        "</tr>";
+    });
+
+    /* Policies: page1 ends with title; page2 has nota + 1-11; page3 has 12 */
+    const polPage2 = POLICIES.slice(0, 12); /* nota + 1..11 */
+    const polPage3 = POLICIES.slice(12); /* 12 */
+
+    let pol2 = "";
+    polPage2.forEach((p) => {
+      pol2 += '<div class="pdf-policy' + (p.tipo === "nota" ? " nota" : "") + '">' + p.html + "</div>";
+    });
+    let pol3 = "";
+    polPage3.forEach((p) => {
+      pol3 += '<div class="pdf-policy">' + p.html + "</div>";
+    });
+
+    return (
+      '<div class="pdf-page" id="pdf-page-1">' +
+        '<div class="pdf-header">' +
+          '<div class="pdf-header-left">' +
+            '<div class="pdf-ciudad">' + escHtml(ciudad) + "</div>" +
+            '<div class="pdf-saludo">Cordial saludo, ' + escHtml(prefijo) + "</div>" +
+            '<div class="pdf-cliente-name">' + escHtml(nombre) + "</div>" +
+            "<div>" + escHtml(doc) + "</div>" +
+            '<div><a class="pdf-email" href="mailto:' + escAttr(correo) + '">' + escHtml(correo) + "</a></div>" +
+          "</div>" +
+          '<div class="pdf-header-right">' +
+            '<div class="pdf-cot-no">Cotización No. ' + escHtml(cotNo) + "</div>" +
+            '<img class="pdf-logo" src="logo.png" alt="Arcano Montpellier" />' +
+          "</div>" +
+        "</div>" +
+        '<p class="pdf-intro">' + escHtml(INTRO) + "</p>" +
+        '<table class="pdf-table">' +
+          "<thead><tr>" +
+            "<th>FECHA</th><th>SERVICIO</th><th>INCLUYE</th><th>V.PERSONA</th><th># PERSONAS</th><th>TOTAL</th>" +
+          "</tr></thead>" +
+          "<tbody>" + mainRows +
+          '<tr class="pdf-cortesias"><td colspan="6"><strong>CORTESÍAS:</strong> ' + escHtml(cortesias) + "</td></tr>" +
+          "</tbody>" +
+        "</table>" +
+        '<div style="overflow:hidden;margin:4px 0 8px">' +
+          '<span class="pdf-sub-badge">SUBTOTAL&nbsp;&nbsp;' + money(totals.subServ) + "</span>" +
+        "</div>" +
+        '<div class="pdf-av-title">COTIZACIÓN AYUDAS AUDIOVISUALES OPCIONALES</div>' +
+        '<table class="pdf-av-table">' +
+          "<thead><tr><th>EQUIPO</th><th>VALOR UNITARIO</th><th>CANT. DÍAS</th><th>TOTAL</th></tr></thead>" +
+          "<tbody>" + avRows + "</tbody>" +
+        "</table>" +
+        '<div class="pdf-av-foot">' +
+          "<span>Esta cotización tiene una vigencia de 15 días.</span>" +
+          '<span class="pdf-sub-badge" style="float:none">SUBTOTAL&nbsp;&nbsp;' + money(totals.subAv) + "</span>" +
+        "</div>" +
+        '<div class="pdf-grand">' +
+          '<div class="pdf-grand-row"><span>SUBTOTAL</span><span>' + money(totals.subGen) + "</span></div>" +
+          '<div class="pdf-grand-row"><span>IVA</span><span>' + money(totals.iva) + "</span></div>" +
+          '<div class="pdf-grand-row"><span>TOTAL</span><span>' + money(totals.total) + "</span></div>" +
+        "</div>" +
+        '<div class="pdf-venue">' + escHtml(VENUE) + "</div>" +
+        '<div class="pdf-pol-title">POLÍTICAS PARA LA RESERVA DEL ESPACIO</div>' +
+      "</div>" +
+      '<div class="pdf-page" id="pdf-page-2">' + pol2 + "</div>" +
+      '<div class="pdf-page" id="pdf-page-3">' + pol3 + "</div>"
+    );
+  }
+
+  document.getElementById("btn-export-pdf").addEventListener("click", async () => {
+    const totals = recalc();
+    const root = document.getElementById("pdf-root");
+    root.innerHTML = buildPdfHtml(totals);
+    root.classList.add("exporting");
+
+    const cotNo = document.getElementById("cot-no").value.trim() || "sin-numero";
+    const nombre = document.getElementById("nombre").value.trim() || "cliente";
+    const filename = "Cotizacion_Arcano_" + nombre.replace(/\s+/g, "_") + "_" + cotNo + ".pdf";
+
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+      jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
+      pagebreak: { mode: ["css", "legacy"], after: ".pdf-page" }
+    };
+
+    try {
+      await html2pdf().set(opt).from(root).save();
+      toast("PDF exportado");
+    } catch (err) {
+      console.error(err);
+      toast("Error al exportar — use Imprimir del navegador");
+      window.print();
+    } finally {
+      root.classList.remove("exporting");
+    }
+  });
+
+  /* ---------- init ---------- */
+  loadTarifas();
+  renderServiciosTable();
+  renderEquiposTable();
+  resetDefaultQuote();
+
+  /* auto-save tarifas on blur from ajustes inputs */
+  document.getElementById("tab-ajustes").addEventListener("change", () => {
+    /* soft autosave */
+    try {
+      readServiciosFromTable();
+      readEquiposFromTable();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ servicios, equipos }));
+    } catch (e) { /* ignore */ }
+  });
+})();
+</script>
+</body>
+</html>
