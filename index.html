@@ -294,6 +294,7 @@
   }
   .pdf-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: 8.5pt;
     margin-bottom: 0;
@@ -316,18 +317,10 @@
   }
   .pdf-table .c-fecha { width: 9%; text-align: center; }
   .pdf-table .c-serv { width: 16%; }
-  .pdf-table .c-incl { width: 38%; font-size: 11px; }
-  /* html2canvas overlapping wrap: one block per line, fixed px height */
-  .pdf-incl {
+  .pdf-table .c-incl {
+    width: 38%;
     font-size: 11px;
-    line-height: 14px;
-  }
-  .pdf-incl-line {
-    display: block;
-    font-size: 11px;
-    line-height: 14px;
-    height: 14px;
-    white-space: nowrap;
+    line-height: 15px;
     overflow: hidden;
   }
   .pdf-table .c-vp { width: 12%; text-align: right; }
@@ -473,7 +466,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.4.0</span>
+  <span class="ver">v1.5.0</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1129,7 +1122,7 @@
           "<tr>" +
           '<td class="c-fecha"></td>' +
           '<td class="c-serv"></td>' +
-          '<td class="c-incl"><div class="pdf-incl">' + wrapInclHtml(ln.descripcion) + "</div></td>" +
+          '<td class="c-incl">' + wrapInclHtml(ln.descripcion) + "</td>" +
           '<td class="c-vp">' + money(ln.precio) + "</td>" +
           '<td class="c-cant">' + ln.cantidad + "</td>" +
           '<td class="c-tot">' + money(ln.total) + "</td>" +
@@ -1154,7 +1147,7 @@
         "<tr>" +
         '<td class="c-fecha">' + (showFecha ? escHtml(fecha) : "") + "</td>" +
         '<td class="c-serv">' + escHtml(ln.nombre) + "</td>" +
-        '<td class="c-incl"><div class="pdf-incl">' + wrapInclHtml(ln.descripcion) + "</div></td>" +
+        '<td class="c-incl">' + wrapInclHtml(ln.descripcion) + "</td>" +
         '<td class="c-vp">' + money(ln.precio) + "</td>" +
         '<td class="c-cant">' + ln.cantidad + "</td>" +
         '<td class="c-tot">' + money(ln.total) + "</td>" +
@@ -1232,7 +1225,7 @@
 
   /* Pre-break INCLUYE so html2canvas never auto-wraps (that stacks glyphs). */
   const INCL_MEASURE_FONT = "11px Arial, Helvetica, sans-serif";
-  const INCL_MAX_PX = 248;
+  const INCL_MAX_PX = 168;
   function wrapInclHtml(text) {
     const raw = String(text || "").replace(/\s+/g, " ").trim();
     if (!raw) return "";
@@ -1253,8 +1246,8 @@
     });
     if (cur) lines.push(cur);
     return lines.map(function (l) {
-      return '<div class="pdf-incl-line">' + escHtml(l) + "</div>";
-    }).join("");
+      return escHtml(l).replace(/ /g, "&nbsp;");
+    }).join("<br>");
   }
 
   function pdfFilename() {
