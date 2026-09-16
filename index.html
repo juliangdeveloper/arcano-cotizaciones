@@ -456,7 +456,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.1.0</span>
+  <span class="ver">v1.2.0</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1274,19 +1274,30 @@
     };
   }
 
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    /* delay revoke so mobile browsers finish the download / preview */
-    setTimeout(() => {
-      a.remove();
-      URL.revokeObjectURL(url);
-    }, 60000);
+  function isIOS() {
+    return /iP(ad|hone|od)/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  async function savePdf(pdf, filename) {
+    const blob = pdf.output("blob");
+    try {
+      const file = new File([blob], filename, { type: "application/pdf" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        return;
+      }
+    } catch (err) {
+      if (err && err.name === "AbortError") return;
+    }
+    /* jsPDF.save uses a data-URI + <a download> (real file on desktop).
+       Blob object URLs on iOS only open a preview Safari then closes. */
+    if (isIOS()) {
+      const w = window.open(pdf.output("datauristring"), "_blank");
+      if (!w) toast("Permite ventanas emergentes para guardar el PDF");
+      return;
+    }
+    pdf.save(filename);
   }
 
   async function preparePdfRoot() {
@@ -1308,11 +1319,9 @@
     const prevScrollY = window.scrollY;
     const root = await preparePdfRoot();
     try {
-      const blob = await html2pdf()
-        .set(pdfExportOptions(filename))
-        .from(root)
-        .outputPdf("blob");
-      downloadBlob(blob, filename);
+      const worker = html2pdf().set(pdfExportOptions(filename)).from(root);
+      const pdf = await worker.toPdf().get("pdf");
+      await savePdf(pdf, filename);
     } finally {
       window.scrollTo(prevScrollX, prevScrollY);
     }
@@ -1323,11 +1332,10 @@
     btn.disabled = true;
     try {
       await exportQuotePdf();
-      toast("PDF descargado");
+      toast("PDF listo");
     } catch (err) {
       console.error(err);
-      toast("Error al exportar — use Imprimir del navegador");
-      window.print();
+      toast("No se pudo generar el PDF");
     } finally {
       btn.disabled = false;
     }
