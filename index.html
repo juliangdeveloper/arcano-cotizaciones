@@ -466,7 +466,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.5.0</span>
+  <span class="ver">v1.6.0</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1223,21 +1223,21 @@
     );
   }
 
-  /* Pre-break INCLUYE so html2canvas never auto-wraps (that stacks glyphs). */
+  /* html2canvas stacks wrapped table text on mobile. Paint INCLUYE as an image. */
   const INCL_MEASURE_FONT = "11px Arial, Helvetica, sans-serif";
-  const INCL_MAX_PX = 168;
+  const INCL_MAX_PX = 220;
+  const INCL_LINE_H = 15;
   function wrapInclHtml(text) {
     const raw = String(text || "").replace(/\s+/g, " ").trim();
     if (!raw) return "";
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    ctx.font = INCL_MEASURE_FONT;
+    const measure = document.createElement("canvas").getContext("2d");
+    measure.font = INCL_MEASURE_FONT;
     const words = raw.split(" ");
     const lines = [];
     let cur = "";
     words.forEach(function (w) {
       const trial = cur ? cur + " " + w : w;
-      if (cur && ctx.measureText(trial).width > INCL_MAX_PX) {
+      if (cur && measure.measureText(trial).width > INCL_MAX_PX) {
         lines.push(cur);
         cur = w;
       } else {
@@ -1245,9 +1245,30 @@
       }
     });
     if (cur) lines.push(cur);
-    return lines.map(function (l) {
-      return escHtml(l).replace(/ /g, "&nbsp;");
-    }).join("<br>");
+
+    const scale = 2;
+    const padX = 2;
+    const width = Math.ceil(INCL_MAX_PX + padX * 2);
+    const height = Math.max(INCL_LINE_H, lines.length * INCL_LINE_H + 2);
+    const canvas = document.createElement("canvas");
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "#000000";
+    ctx.font = INCL_MEASURE_FONT;
+    ctx.textBaseline = "top";
+    lines.forEach(function (l, i) {
+      ctx.fillText(l, padX, 1 + i * INCL_LINE_H);
+    });
+    const src = canvas.toDataURL("image/png");
+    return (
+      '<img class="pdf-incl-img" src="' + src + '" width="' + width +
+      '" height="' + height + '" alt="" style="display:block;width:' +
+      width + "px;height:" + height + 'px;max-width:100%;border:0;" />'
+    );
   }
 
   function pdfFilename() {
