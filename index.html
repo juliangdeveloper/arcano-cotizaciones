@@ -466,7 +466,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.6.0</span>
+  <span class="ver">v1.7.0</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1329,9 +1329,45 @@
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
 
+  function isSafari() {
+    const ua = navigator.userAgent;
+    return /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/i.test(ua);
+  }
+
   async function savePdf(pdf, filename) {
-    const blob = pdf.output("blob");
-    const url = URL.createObjectURL(blob);
+    const pdfBlob = pdf.output("blob");
+    const bytes = await pdfBlob.arrayBuffer();
+    const pdfFile = new File([bytes], filename, { type: "application/pdf" });
+
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "PDF", accept: { "application/pdf": [".pdf"] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(pdfFile);
+        await writable.close();
+        return "saved";
+      } catch (err) {
+        if (err && err.name === "AbortError") return "cancelled";
+      }
+    }
+
+    if (isIOS() && navigator.canShare) {
+      try {
+        if (navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({ files: [pdfFile], title: filename });
+          return "shared";
+        }
+      } catch (err) {
+        if (err && err.name === "AbortError") return "cancelled";
+      }
+    }
+
+    /* Safari opens blob:application/pdf in a tab; octet-stream forces download. */
+    const forceDownload = new Blob([bytes], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(forceDownload);
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
@@ -1343,6 +1379,7 @@
       URL.revokeObjectURL(url);
       a.remove();
     }, 60000);
+    return "download";
   }
 
   async function preparePdfRoot() {
@@ -1366,7 +1403,7 @@
     try {
       const worker = html2pdf().set(pdfExportOptions(filename)).from(root);
       const pdf = await worker.toPdf().get("pdf");
-      await savePdf(pdf, filename);
+      return await savePdf(pdf, filename);
     } finally {
       window.scrollTo(prevScrollX, prevScrollY);
     }
@@ -1376,8 +1413,10 @@
     const btn = document.getElementById("btn-export-pdf");
     btn.disabled = true;
     try {
-      await exportQuotePdf();
-      toast("PDF listo");
+      const how = await exportQuotePdf();
+      if (how === "cancelled") toast("Descarga cancelada");
+      else if (how === "shared") toast("Usa Guardar en Archivos en el menú");
+      else toast("PDF descargado");
     } catch (err) {
       console.error(err);
       toast("No se pudo generar el PDF");
