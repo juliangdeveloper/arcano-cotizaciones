@@ -214,34 +214,52 @@
   /* ========== PDF / print template ========== */
   #pdf-root {
     position: absolute;
-    left: -9999px;
+    left: -10000px;
     top: 0;
     width: 215.9mm;
+    margin: 0;
+    padding: 0;
     background: white;
     color: #000;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 10pt;
-    line-height: 1.35;
+    line-height: 1.3;
   }
+  /* Visible at (0,0) while html2canvas runs. Clone inside html2pdf's
+     overlay must stay in-flow — position:fixed on the clone would paint
+     against the viewport and leave the capture container empty. */
   #pdf-root.exporting {
-    position: relative;
+    position: fixed;
     left: 0;
+    top: 0;
+    z-index: 1;
+  }
+  .html2pdf__container #pdf-root {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
   }
   .pdf-page {
     width: 215.9mm;
-    min-height: 279.4mm;
-    padding: 12mm 14mm 14mm;
+    min-height: 0;
+    padding: 10mm 14mm 10mm;
     box-sizing: border-box;
     background: white;
     page-break-after: always;
+    break-after: page;
     position: relative;
   }
-  .pdf-page:last-child { page-break-after: auto; }
+  .pdf-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
   .pdf-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .pdf-header-left { flex: 1; }
   .pdf-header-right {
@@ -249,17 +267,17 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 4px;
+    gap: 2px;
   }
   .pdf-cot-no { font-size: 11pt; font-weight: 700; margin-bottom: 2px; }
-  .pdf-logo { height: 58px; width: auto; }
+  .pdf-logo { height: 50px; width: auto; }
   .pdf-ciudad { font-size: 11pt; margin-bottom: 2px; }
-  .pdf-saludo { margin: 2px 0; }
+  .pdf-saludo { margin: 1px 0; }
   .pdf-cliente-name { font-weight: 700; }
   .pdf-email { color: #0563c1; text-decoration: underline; }
   .pdf-intro {
     text-align: center;
-    margin: 10px 0 12px;
+    margin: 6px 0 8px;
     font-size: 9.5pt;
     padding: 0 4px;
   }
@@ -268,19 +286,21 @@
     border-collapse: collapse;
     font-size: 8.5pt;
     margin-bottom: 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .pdf-table th {
     background: #9a8b4a;
     color: white;
     font-weight: 700;
-    padding: 5px 4px;
+    padding: 4px 4px;
     border: 1px solid #7a6e38;
     text-align: center;
     font-size: 8pt;
   }
   .pdf-table td {
     border: 1px solid #bbb;
-    padding: 4px 4px;
+    padding: 3px 4px;
     vertical-align: top;
   }
   .pdf-table .c-fecha { width: 9%; text-align: center; }
@@ -291,7 +311,7 @@
   .pdf-table .c-tot { width: 15%; text-align: right; }
   .pdf-cortesias td {
     font-size: 8pt;
-    padding: 6px 4px;
+    padding: 5px 4px;
   }
   .pdf-subtotal-row td {
     border: none;
@@ -302,15 +322,19 @@
     background: #9a8b4a;
     color: white;
     font-weight: 700;
-    padding: 4px 10px;
+    padding: 3px 10px;
     float: right;
     font-size: 9pt;
+  }
+  .pdf-av-block {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .pdf-av-title {
     text-align: center;
     font-weight: 700;
     font-size: 10pt;
-    margin: 14px 0 8px;
+    margin: 8px 0 6px;
     letter-spacing: 0.02em;
   }
   .pdf-av-table {
@@ -322,43 +346,49 @@
   .pdf-av-table th {
     background: #9a8b4a;
     color: white;
-    padding: 4px 6px;
+    padding: 3px 6px;
     border: 1px solid #7a6e38;
     font-size: 8pt;
   }
   .pdf-av-table td {
     border: 1px solid #bbb;
-    padding: 4px 6px;
+    padding: 3px 6px;
   }
   .pdf-av-table .num { text-align: right; }
   .pdf-av-table .ctr { text-align: center; }
   .pdf-av-foot {
     width: 78%;
-    margin: 6px auto 0;
+    margin: 4px auto 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 9pt;
   }
+  .pdf-totals {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
   .pdf-grand {
     width: 42%;
-    margin: 14px 0 14px auto;
+    margin: 8px 0 8px auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .pdf-grand-row {
     background: #9a8b4a;
     color: white;
     font-weight: 700;
-    padding: 5px 12px;
-    margin-bottom: 3px;
+    padding: 4px 12px;
+    margin-bottom: 2px;
     display: flex;
     justify-content: space-between;
     font-size: 10pt;
   }
   .pdf-venue {
     border: 1px solid #333;
-    padding: 8px 10px;
+    padding: 6px 10px;
     font-size: 8.5pt;
-    margin: 10px 0 16px;
+    margin: 8px 0 10px;
     text-align: justify;
   }
   .pdf-pol-title {
@@ -366,14 +396,16 @@
     font-weight: 700;
     font-size: 11pt;
     text-decoration: underline;
-    margin: 8px 0 10px;
+    margin: 4px 0 0;
   }
   .pdf-policy {
     border: 1px solid #333;
-    padding: 8px 10px;
-    margin-bottom: 6px;
+    padding: 6px 10px;
+    margin-bottom: 5px;
     font-size: 9pt;
     text-align: justify;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .pdf-policy.nota {
     color: #c45a12;
@@ -393,9 +425,19 @@
       width: 100%;
     }
     .pdf-page {
+      min-height: 279.4mm;
       page-break-after: always;
+      break-after: page;
       margin: 0;
       box-shadow: none;
+    }
+    .pdf-page:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    .pdf-totals, .pdf-grand, .pdf-table, .pdf-av-block {
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
   }
 </style>
@@ -1142,22 +1184,26 @@
           '<tr class="pdf-cortesias"><td colspan="6"><strong>CORTESÍAS:</strong> ' + escHtml(cortesias) + "</td></tr>" +
           "</tbody>" +
         "</table>" +
-        '<div style="overflow:hidden;margin:4px 0 8px">' +
+        '<div style="overflow:hidden;margin:2px 0 4px">' +
           '<span class="pdf-sub-badge">SUBTOTAL&nbsp;&nbsp;' + money(totals.subServ) + "</span>" +
         "</div>" +
-        '<div class="pdf-av-title">COTIZACIÓN AYUDAS AUDIOVISUALES OPCIONALES</div>' +
-        '<table class="pdf-av-table">' +
-          "<thead><tr><th>EQUIPO</th><th>VALOR UNITARIO</th><th>CANT. DÍAS</th><th>TOTAL</th></tr></thead>" +
-          "<tbody>" + avRows + "</tbody>" +
-        "</table>" +
-        '<div class="pdf-av-foot">' +
-          "<span>Esta cotización tiene una vigencia de 15 días.</span>" +
-          '<span class="pdf-sub-badge" style="float:none">SUBTOTAL&nbsp;&nbsp;' + money(totals.subAv) + "</span>" +
+        '<div class="pdf-av-block">' +
+          '<div class="pdf-av-title">COTIZACIÓN AYUDAS AUDIOVISUALES OPCIONALES</div>' +
+          '<table class="pdf-av-table">' +
+            "<thead><tr><th>EQUIPO</th><th>VALOR UNITARIO</th><th>CANT. DÍAS</th><th>TOTAL</th></tr></thead>" +
+            "<tbody>" + avRows + "</tbody>" +
+          "</table>" +
+          '<div class="pdf-av-foot">' +
+            "<span>Esta cotización tiene una vigencia de 15 días.</span>" +
+            '<span class="pdf-sub-badge" style="float:none">SUBTOTAL&nbsp;&nbsp;' + money(totals.subAv) + "</span>" +
+          "</div>" +
         "</div>" +
-        '<div class="pdf-grand">' +
-          '<div class="pdf-grand-row"><span>SUBTOTAL</span><span>' + money(totals.subGen) + "</span></div>" +
-          '<div class="pdf-grand-row"><span>IVA</span><span>' + money(totals.iva) + "</span></div>" +
-          '<div class="pdf-grand-row"><span>TOTAL</span><span>' + money(totals.total) + "</span></div>" +
+        '<div class="pdf-totals">' +
+          '<div class="pdf-grand">' +
+            '<div class="pdf-grand-row"><span>SUBTOTAL</span><span>' + money(totals.subGen) + "</span></div>" +
+            '<div class="pdf-grand-row"><span>IVA</span><span>' + money(totals.iva) + "</span></div>" +
+            '<div class="pdf-grand-row"><span>TOTAL</span><span>' + money(totals.total) + "</span></div>" +
+          "</div>" +
         "</div>" +
         '<div class="pdf-venue">' + escHtml(VENUE) + "</div>" +
         '<div class="pdf-pol-title">POLÍTICAS PARA LA RESERVA DEL ESPACIO</div>' +
@@ -1167,36 +1213,99 @@
     );
   }
 
-  document.getElementById("btn-export-pdf").addEventListener("click", async () => {
-    const totals = recalc();
-    const root = document.getElementById("pdf-root");
-    root.innerHTML = buildPdfHtml(totals);
-    root.classList.add("exporting");
-
+  function pdfFilename() {
     const cotNo = document.getElementById("cot-no").value.trim() || "sin-numero";
     const nombre = document.getElementById("nombre").value.trim() || "cliente";
-    const filename = "Cotizacion_Arcano_" + nombre.replace(/\s+/g, "_") + "_" + cotNo + ".pdf";
+    return "Cotizacion_Arcano_" + nombre.replace(/\s+/g, "_") + "_" + cotNo + ".pdf";
+  }
 
-    const opt = {
+  function waitForPdfImages(root) {
+    const imgs = Array.from(root.querySelectorAll("img"));
+    return Promise.all(imgs.map((img) => {
+      if (img.complete && img.naturalWidth) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.addEventListener("load", resolve, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+      });
+    }));
+  }
+
+  function pdfExportOptions(filename) {
+    return {
       margin: 0,
       filename: filename,
       image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        letterRendering: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 816,
+        backgroundColor: "#ffffff",
+        onclone: function (clonedDoc) {
+          const clonedRoot = clonedDoc.getElementById("pdf-root");
+          if (!clonedRoot) return;
+          clonedRoot.classList.add("exporting");
+          clonedRoot.style.position = "relative";
+          clonedRoot.style.left = "0";
+          clonedRoot.style.top = "0";
+          clonedRoot.style.margin = "0";
+          clonedRoot.style.transform = "none";
+        }
+      },
       jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
-      pagebreak: { mode: ["css", "legacy"], after: ".pdf-page" }
+      /* CSS page-break-after on .pdf-page already starts a new sheet.
+         Do not also set pagebreak.after — that inserts a full-page pad
+         when an element already sits on a page boundary (blank page). */
+      pagebreak: {
+        mode: ["css"],
+        avoid: [".pdf-totals", ".pdf-grand", ".pdf-table", ".pdf-av-block"]
+      }
     };
+  }
 
+  async function createQuotePdfDataUri() {
+    const totals = recalc();
+    const root = document.getElementById("pdf-root");
+    const filename = pdfFilename();
+    const prevScrollX = window.scrollX;
+    const prevScrollY = window.scrollY;
+    window.scrollTo(0, 0);
+    root.innerHTML = buildPdfHtml(totals);
+    root.classList.add("exporting");
+    await waitForPdfImages(root);
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (e) { /* ignore */ }
+    }
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     try {
-      await html2pdf().set(opt).from(root).save();
+      return await html2pdf().set(pdfExportOptions(filename)).from(root).outputPdf("datauristring");
+    } finally {
+      root.classList.remove("exporting");
+      window.scrollTo(prevScrollX, prevScrollY);
+    }
+  }
+
+  document.getElementById("btn-export-pdf").addEventListener("click", async () => {
+    try {
+      const dataUri = await createQuotePdfDataUri();
+      const a = document.createElement("a");
+      a.href = dataUri;
+      a.download = pdfFilename();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       toast("PDF exportado");
     } catch (err) {
       console.error(err);
       toast("Error al exportar — use Imprimir del navegador");
       window.print();
-    } finally {
-      root.classList.remove("exporting");
     }
   });
+
+  window.__exportQuotePdfDataUri = createQuotePdfDataUri;
 
   /* ---------- init ---------- */
   loadTarifas();
