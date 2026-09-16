@@ -414,7 +414,9 @@
     font-weight: 700;
     font-size: 11pt;
     text-decoration: underline;
-    margin: 4px 0 0;
+    margin: 4px 0 6px;
+    page-break-after: avoid;
+    break-after: avoid;
   }
   .pdf-policy {
     border: 1px solid #333;
@@ -467,7 +469,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.3.0</span>
+  <span class="ver">v1.3.1</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1166,7 +1168,10 @@
         "</tr>";
     });
 
-    /* Policies flow after the title: no forced page just for item 12. */
+    /* One continuous sheet: title immediately followed by policy boxes.
+       No .pdf-page boundary (page-break-after) between heading and policies,
+       so leftover space on page 1 fills with boxes. Each .pdf-policy still
+       has page-break-inside: avoid so a box does not split. */
     let polHtml = "";
     POLICIES.forEach((p) => {
       polHtml += '<div class="pdf-policy' + (p.tipo === "nota" ? " nota" : "") + '">' + p.html + "</div>";
@@ -1219,8 +1224,8 @@
         "</div>" +
         '<div class="pdf-venue">' + escHtml(VENUE) + "</div>" +
         '<div class="pdf-pol-title">POLÍTICAS PARA LA RESERVA DEL ESPACIO</div>' +
-      "</div>" +
-      '<div class="pdf-page" id="pdf-page-2">' + polHtml + "</div>"
+        polHtml +
+      "</div>"
     );
   }
 
@@ -1272,7 +1277,7 @@
          when an element already sits on a page boundary (blank page). */
       pagebreak: {
         mode: ["css"],
-        avoid: [".pdf-totals", ".pdf-grand", ".pdf-table", ".pdf-av-block"]
+        avoid: [".pdf-totals", ".pdf-grand", ".pdf-table", ".pdf-av-block", ".pdf-policy"]
       }
     };
   }
