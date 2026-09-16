@@ -316,13 +316,19 @@
   }
   .pdf-table .c-fecha { width: 9%; text-align: center; }
   .pdf-table .c-serv { width: 16%; }
-  .pdf-table .c-incl { width: 38%; font-size: 11px; line-height: 1.4; }
+  .pdf-table .c-incl { width: 38%; font-size: 11px; }
+  /* html2canvas overlapping wrap: one block per line, fixed px height */
   .pdf-incl {
-    line-height: 1.4;
-    letter-spacing: 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
+    font-size: 11px;
+    line-height: 14px;
+  }
+  .pdf-incl-line {
+    display: block;
+    font-size: 11px;
+    line-height: 14px;
+    height: 14px;
+    white-space: nowrap;
+    overflow: hidden;
   }
   .pdf-table .c-vp { width: 12%; text-align: right; }
   .pdf-table .c-cant { width: 10%; text-align: center; }
@@ -467,7 +473,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.3.0</span>
+  <span class="ver">v1.4.0</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1123,7 +1129,7 @@
           "<tr>" +
           '<td class="c-fecha"></td>' +
           '<td class="c-serv"></td>' +
-          '<td class="c-incl"><div class="pdf-incl">' + escHtml(ln.descripcion) + "</div></td>" +
+          '<td class="c-incl"><div class="pdf-incl">' + wrapInclHtml(ln.descripcion) + "</div></td>" +
           '<td class="c-vp">' + money(ln.precio) + "</td>" +
           '<td class="c-cant">' + ln.cantidad + "</td>" +
           '<td class="c-tot">' + money(ln.total) + "</td>" +
@@ -1148,7 +1154,7 @@
         "<tr>" +
         '<td class="c-fecha">' + (showFecha ? escHtml(fecha) : "") + "</td>" +
         '<td class="c-serv">' + escHtml(ln.nombre) + "</td>" +
-        '<td class="c-incl"><div class="pdf-incl">' + escHtml(ln.descripcion) + "</div></td>" +
+        '<td class="c-incl"><div class="pdf-incl">' + wrapInclHtml(ln.descripcion) + "</div></td>" +
         '<td class="c-vp">' + money(ln.precio) + "</td>" +
         '<td class="c-cant">' + ln.cantidad + "</td>" +
         '<td class="c-tot">' + money(ln.total) + "</td>" +
@@ -1222,6 +1228,33 @@
       "</div>" +
       '<div class="pdf-page" id="pdf-page-2">' + polHtml + "</div>"
     );
+  }
+
+  /* Pre-break INCLUYE so html2canvas never auto-wraps (that stacks glyphs). */
+  const INCL_MEASURE_FONT = "11px Arial, Helvetica, sans-serif";
+  const INCL_MAX_PX = 248;
+  function wrapInclHtml(text) {
+    const raw = String(text || "").replace(/\s+/g, " ").trim();
+    if (!raw) return "";
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.font = INCL_MEASURE_FONT;
+    const words = raw.split(" ");
+    const lines = [];
+    let cur = "";
+    words.forEach(function (w) {
+      const trial = cur ? cur + " " + w : w;
+      if (cur && ctx.measureText(trial).width > INCL_MAX_PX) {
+        lines.push(cur);
+        cur = w;
+      } else {
+        cur = trial;
+      }
+    });
+    if (cur) lines.push(cur);
+    return lines.map(function (l) {
+      return '<div class="pdf-incl-line">' + escHtml(l) + "</div>";
+    }).join("");
   }
 
   function pdfFilename() {
