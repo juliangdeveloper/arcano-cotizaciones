@@ -50,6 +50,13 @@
     font-weight: 700;
   }
   .app-header .sub { color: var(--muted); font-size: 0.85rem; margin: 0; }
+  .app-header .ver {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
   .tabs {
     display: flex;
     gap: 0;
@@ -229,10 +236,10 @@
      overlay must stay in-flow — position:fixed on the clone would paint
      against the viewport and leave the capture container empty. */
   #pdf-root.exporting {
-    position: fixed;
-    left: 0;
+    /* keep live template off-screen; html2pdf clone is repositioned in onclone */
+    position: absolute;
+    left: -10000px;
     top: 0;
-    z-index: 1;
   }
   .html2pdf__container #pdf-root {
     position: relative !important;
@@ -449,6 +456,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
+  <span class="ver">v1.1.0</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -1266,46 +1274,64 @@
     };
   }
 
-  async function createQuotePdfDataUri() {
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    /* delay revoke so mobile browsers finish the download / preview */
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 60000);
+  }
+
+  async function preparePdfRoot() {
     const totals = recalc();
     const root = document.getElementById("pdf-root");
-    const filename = pdfFilename();
-    const prevScrollX = window.scrollX;
-    const prevScrollY = window.scrollY;
     window.scrollTo(0, 0);
     root.innerHTML = buildPdfHtml(totals);
-    root.classList.add("exporting");
     await waitForPdfImages(root);
     if (document.fonts && document.fonts.ready) {
       try { await document.fonts.ready; } catch (e) { /* ignore */ }
     }
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    return root;
+  }
+
+  async function exportQuotePdf() {
+    const filename = pdfFilename();
+    const prevScrollX = window.scrollX;
+    const prevScrollY = window.scrollY;
+    const root = await preparePdfRoot();
     try {
-      return await html2pdf().set(pdfExportOptions(filename)).from(root).outputPdf("datauristring");
+      const blob = await html2pdf()
+        .set(pdfExportOptions(filename))
+        .from(root)
+        .outputPdf("blob");
+      downloadBlob(blob, filename);
     } finally {
-      root.classList.remove("exporting");
       window.scrollTo(prevScrollX, prevScrollY);
     }
   }
 
   document.getElementById("btn-export-pdf").addEventListener("click", async () => {
+    const btn = document.getElementById("btn-export-pdf");
+    btn.disabled = true;
     try {
-      const dataUri = await createQuotePdfDataUri();
-      const a = document.createElement("a");
-      a.href = dataUri;
-      a.download = pdfFilename();
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      toast("PDF exportado");
+      await exportQuotePdf();
+      toast("PDF descargado");
     } catch (err) {
       console.error(err);
       toast("Error al exportar — use Imprimir del navegador");
       window.print();
+    } finally {
+      btn.disabled = false;
     }
   });
-
-  window.__exportQuotePdfDataUri = createQuotePdfDataUri;
 
   /* ---------- init ---------- */
   loadTarifas();
