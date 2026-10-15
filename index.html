@@ -466,7 +466,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.7.0</span>
+  <span class="ver">v1.7.1</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -630,7 +630,6 @@
 
   const STORAGE_KEY = "arcano-tarifas-v1";
   const IVA_RATE = 0.19;
-  const ACCENT = "#9a8b4a";
 
   const DEFAULT_SERVICIOS = [
     { nombre: "PLAN ARCANO PLUS", descripcion: "SALÓN dotado mesas y sillas; plan  día ; ALIMENTACIÓN: 1 desayuno, 2 refrigerios am-pm y almuerzo. ", precio: 140000 },
@@ -699,11 +698,6 @@
     const neg = v < 0;
     const s = Math.abs(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return (neg ? "-$ " : "$ ") + s;
-  }
-
-  function parseNum(el) {
-    const raw = String(el.value || "").replace(/[^\d-]/g, "");
-    return parseInt(raw, 10) || 0;
   }
 
   function formatDateDDMMYY(iso) {
@@ -1087,8 +1081,7 @@
     /* insert before fixed tasa row if present */
     const tb = document.querySelector("#tabla-lineas tbody");
     const fixed = tb.querySelector('tr[data-fixed="1"]');
-    const tmp = document.createElement("tbody");
-    /* simpler: just append before fixed */
+    /* append, then move before fixed row */
     addLinea({ nombre: "", descripcion: "", precio: 0, cantidad: 0 });
     if (fixed) {
       const last = tb.lastElementChild;
@@ -1327,11 +1320,6 @@
   function isIOS() {
     return /iP(ad|hone|od)/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  }
-
-  function isSafari() {
-    const ua = navigator.userAgent;
-    return /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/i.test(ua);
   }
 
   async function savePdf(pdf, filename) {
