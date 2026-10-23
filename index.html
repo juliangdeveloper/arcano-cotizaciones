@@ -218,7 +218,6 @@
   }
   .toast.show { opacity: 1; }
 
-  /* ========== PDF / print template ========== */
   #pdf-root {
     position: absolute;
     left: -10000px;
@@ -236,11 +235,7 @@
     font-family: Arial, Helvetica, sans-serif !important;
     letter-spacing: 0 !important;
   }
-  /* Visible at (0,0) while html2canvas runs. Clone inside html2pdf's
-     overlay must stay in-flow — position:fixed on the clone would paint
-     against the viewport and leave the capture container empty. */
   #pdf-root.exporting {
-    /* keep live template off-screen; html2pdf clone is repositioned in onclone */
     position: absolute;
     left: -10000px;
     top: 0;
@@ -466,7 +461,7 @@
     <h1>Arcano Eventos Empresariales</h1>
     <p class="sub">Cotización · Casa Campestre Montpellier</p>
   </div>
-  <span class="ver">v1.7.1</span>
+  <span class="ver">v1.7.2</span>
 </header>
 
 <nav class="tabs" role="tablist">
@@ -474,7 +469,6 @@
   <button type="button" class="tab-btn" data-tab="cotizacion" role="tab">Cotización</button>
 </nav>
 
-<!-- ========== TAB AJUSTES ========== -->
 <section id="tab-ajustes" class="panel active" role="tabpanel">
   <div class="card">
     <h2>Servicios y tarifas vigentes</h2>
@@ -520,7 +514,6 @@
   </div>
 </section>
 
-<!-- ========== TAB COTIZACIÓN ========== -->
 <section id="tab-cotizacion" class="panel" role="tabpanel">
   <div class="card">
     <h2>Datos del cliente</h2>
@@ -621,7 +614,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Hidden PDF template -->
 <div id="pdf-root" aria-hidden="true"></div>
 
 <script>
@@ -692,7 +684,6 @@
   let equipos = [];
   let tasaAseo = { descripcion: "Tasa de aseo, logística, mesero", precio: 480000, cantidad: 1 };
 
-  /* ---------- utils ---------- */
   function money(n) {
     const v = Math.round(Number(n) || 0);
     const neg = v < 0;
@@ -729,7 +720,7 @@
         else equipos = deepClone(DEFAULT_EQUIPOS);
         return;
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) { }
     servicios = deepClone(DEFAULT_SERVICIOS);
     equipos = deepClone(DEFAULT_EQUIPOS);
   }
@@ -744,7 +735,6 @@
     toast("Tarifas guardadas");
   }
 
-  /* ---------- tabs ---------- */
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
@@ -759,7 +749,6 @@
     });
   });
 
-  /* ---------- ajustes tables ---------- */
   function renderServiciosTable() {
     const tb = document.querySelector("#tabla-servicios tbody");
     tb.innerHTML = "";
@@ -858,7 +847,6 @@
   });
   document.getElementById("btn-save-tarifas").addEventListener("click", saveTarifas);
 
-  /* ---------- cotización line items ---------- */
   function findServicio(nombre) {
     const n = (nombre || "").trim().toUpperCase();
     return servicios.find((s) => s.nombre.trim().toUpperCase() === n) || null;
@@ -934,7 +922,6 @@
       const cur = sel.value;
       sel.innerHTML = optionsHtml(cur);
       if (cur && !findServicio(cur)) {
-        /* keep orphan value */
         const opt = document.createElement("option");
         opt.value = cur;
         opt.textContent = cur;
@@ -971,7 +958,6 @@
     return lines;
   }
 
-  /* ---------- AV ---------- */
   const AV_DEFAULTS = [
     { key: "VIDEOBEAM", dias: 1 },
     { key: "SONIDO", dias: 1 },
@@ -981,7 +967,6 @@
   let avState = deepClone(AV_DEFAULTS);
 
   function refreshAVTable() {
-    /* preserve days */
     const prev = {};
     document.querySelectorAll("#tabla-av tbody tr").forEach((tr) => {
       prev[tr.dataset.key] = Number(tr.querySelector(".av-dias").value) || 0;
@@ -1023,7 +1008,6 @@
     });
   }
 
-  /* ---------- totals ---------- */
   function recalc() {
     const lines = getLineas();
     let subServ = 0;
@@ -1078,10 +1062,8 @@
   }
 
   document.getElementById("btn-add-linea").addEventListener("click", () => {
-    /* insert before fixed tasa row if present */
     const tb = document.querySelector("#tabla-lineas tbody");
     const fixed = tb.querySelector('tr[data-fixed="1"]');
-    /* append, then move before fixed row */
     addLinea({ nombre: "", descripcion: "", precio: 0, cantidad: 0 });
     if (fixed) {
       const last = tb.lastElementChild;
@@ -1094,7 +1076,6 @@
     if (confirm("¿Restablecer la cotización a los valores de la muestra?")) resetDefaultQuote();
   });
 
-  /* ---------- PDF ---------- */
   function buildPdfHtml(totals) {
     const ciudad = document.getElementById("ciudad").value.trim() || "Envigado";
     const cotNo = document.getElementById("cot-no").value.trim() || "_____";
@@ -1106,7 +1087,6 @@
     const cortesias = document.getElementById("cortesias").value.trim();
 
     const lines = totals.lines;
-    /* Build main rows: service lines that aren't empty optional, plus empty row if needed like sample */
     let mainRows = "";
     let firstDateShown = false;
     lines.forEach((ln, idx) => {
@@ -1124,7 +1104,6 @@
       }
       const empty = !ln.nombre && !ln.cantidad && !ln.precio;
       if (empty && idx > 0) {
-        /* show blank optional row like sample */
         mainRows +=
           "<tr>" +
           '<td class="c-fecha"></td><td class="c-serv"></td><td class="c-incl"></td>' +
@@ -1158,7 +1137,6 @@
         "</tr>";
     });
 
-    /* Policies flow after the title: no forced page just for item 12. */
     let polHtml = "";
     POLICIES.forEach((p) => {
       polHtml += '<div class="pdf-policy' + (p.tipo === "nota" ? " nota" : "") + '">' + p.html + "</div>";
@@ -1216,7 +1194,6 @@
     );
   }
 
-  /* html2canvas stacks wrapped table text on mobile. Paint INCLUYE as an image. */
   const INCL_MEASURE_FONT = "11px Arial, Helvetica, sans-serif";
   const INCL_MAX_PX = 220;
   const INCL_LINE_H = 15;
@@ -1307,9 +1284,6 @@
         }
       },
       jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
-      /* CSS page-break-after on .pdf-page already starts a new sheet.
-         Do not also set pagebreak.after — that inserts a full-page pad
-         when an element already sits on a page boundary (blank page). */
       pagebreak: {
         mode: ["css"],
         avoid: [".pdf-totals", ".pdf-grand", ".pdf-table", ".pdf-av-block"]
@@ -1353,7 +1327,6 @@
       }
     }
 
-    /* Safari opens blob:application/pdf in a tab; octet-stream forces download. */
     const forceDownload = new Blob([bytes], { type: "application/octet-stream" });
     const url = URL.createObjectURL(forceDownload);
     const a = document.createElement("a");
@@ -1377,7 +1350,7 @@
     root.innerHTML = buildPdfHtml(totals);
     await waitForPdfImages(root);
     if (document.fonts && document.fonts.ready) {
-      try { await document.fonts.ready; } catch (e) { /* ignore */ }
+      try { await document.fonts.ready; } catch (e) { }
     }
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     return root;
@@ -1413,20 +1386,17 @@
     }
   });
 
-  /* ---------- init ---------- */
   loadTarifas();
   renderServiciosTable();
   renderEquiposTable();
   resetDefaultQuote();
 
-  /* auto-save tarifas on blur from ajustes inputs */
   document.getElementById("tab-ajustes").addEventListener("change", () => {
-    /* soft autosave */
     try {
       readServiciosFromTable();
       readEquiposFromTable();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ servicios, equipos }));
-    } catch (e) { /* ignore */ }
+    } catch (e) { }
   });
 })();
 </script>
